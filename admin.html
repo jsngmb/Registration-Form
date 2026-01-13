@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Admin Dashboard</title>
 
-  <!-- Bootstrap -->
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
@@ -17,10 +17,8 @@
 </nav>
 
 <div class="container mt-4">
-
   <div class="card shadow">
     <div class="card-body">
-
       <h4 class="mb-3">Registered Users</h4>
 
       <div class="table-responsive">
@@ -33,37 +31,37 @@
               <th>Email</th>
               <th>Contact</th>
               <th>QR ID</th>
+              <th>QR</th>
             </tr>
           </thead>
           <tbody id="tableBody">
             <tr>
-              <td colspan="6">Loading...</td>
+              <td colspan="7">Loading...</td>
             </tr>
           </tbody>
         </table>
       </div>
-
     </div>
   </div>
-
 </div>
 
-<!-- 🔥 FIREBASE -->
-<script type="module">
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Firebase JS -->
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs, query, orderBy } from
-    "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
-  apiKey: "AIzaSyCp02Ofq_Z4GxCj2ZSLyOsag-n6BWc7bys",
-  authDomain: "registration-form-69997.firebaseapp.com",
-  projectId: "registration-form-69997",
-  storageBucket: "registration-form-69997.firebasestorage.app",
-  messagingSenderId: "58234209234",
-  appId: "1:58234209234:web:044194a0cbbb1a26e43e0b",
-  measurementId: "G-FEEFRT99P9"
-};
+    apiKey: "AIzaSyCp02Ofq_Z4GxCj2ZSLyOsag-n6BWc7bys",
+    authDomain: "registration-form-69997.firebaseapp.com",
+    projectId: "registration-form-69997",
+    storageBucket: "registration-form-69997.firebasestorage.app",
+    messagingSenderId: "58234209234",
+    appId: "1:58234209234:web:044194a0cbbb1a26e43e0b",
+    measurementId: "G-FEEFRT99P9"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -71,17 +69,13 @@
   const tableBody = document.getElementById("tableBody");
 
   async function loadData() {
-
     tableBody.innerHTML = "";
-
     const q = query(collection(db, "registrations"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
 
     let i = 1;
-
     snap.forEach(doc => {
       const d = doc.data();
-
       tableBody.innerHTML += `
         <tr>
           <td>${i++}</td>
@@ -90,14 +84,46 @@
           <td>${d.email}</td>
           <td>${d.contact}</td>
           <td>${doc.id}</td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showQR('${doc.id}')">View QR</button></td>
         </tr>
       `;
     });
-
   }
 
   loadData();
 
+  function showQR(id) {
+    // Create modal dynamically
+    const modalHTML = `
+      <div class="modal fade" id="qrModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content text-center">
+            <div class="modal-header">
+              <h5 class="modal-title">User QR Code</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="qrContainer"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    // Generate QR code
+    const qrDiv = document.createElement("div");
+    document.getElementById("qrContainer").appendChild(qrDiv);
+    new QRCode(qrDiv, { text: id, width: 200, height: 200 });
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById("qrModal"));
+    modal.show();
+
+    // Cleanup after close
+    document.getElementById("qrModal").addEventListener("hidden.bs.modal", () => {
+      qrDiv.remove();
+      document.getElementById("qrModal").remove();
+    });
+  }
 </script>
 
 </body>
